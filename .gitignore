@@ -1,0 +1,24 @@
+# Editor / IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+npm-debug.log*
+
+# Local env / secrets
+.env
+.env.local
+.env.*.local
+
+# Build output (none today, but reserve)
+dist/
+build/
+node_modules/
