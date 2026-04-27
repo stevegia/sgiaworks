@@ -1,6 +1,11 @@
-
 // tweaks-panel.jsx
 // Reusable Tweaks shell + form-control helpers.
+//
+// ESM module. The file uses React.useState / React.useRef / etc. throughout so
+// a default React import (rather than named hook imports) is the minimal change
+// from the original Babel-standalone version.
+import React from 'react';
+
 //
 // Owns the host protocol (listens for __activate_edit_mode / __deactivate_edit_mode,
 // posts __edit_mode_available / __edit_mode_set_keys / __edit_mode_dismissed) so
@@ -418,8 +423,17 @@ function TweakButton({ label, onClick, secondary = false }) {
   );
 }
 
-Object.assign(window, {
-  useTweaks, TweaksPanel, TweakSection, TweakRow,
-  TweakSlider, TweakToggle, TweakRadio, TweakSelect,
-  TweakText, TweakNumber, TweakColor, TweakButton,
-});
+export {
+  useTweaks,
+  TweaksPanel,
+  TweakSection,
+  TweakRow,
+  TweakSlider,
+  TweakToggle,
+  TweakRadio,
+  TweakSelect,
+  TweakText,
+  TweakNumber,
+  TweakColor,
+  TweakButton,
+};

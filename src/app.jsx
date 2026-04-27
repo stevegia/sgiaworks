@@ -1,5 +1,12 @@
-/* App component — sidebar nav, page routing, all pages */
-const { useState, useEffect, useRef } = React;
+/* App component - sidebar nav, page routing, all pages */
+import React, { useState, useEffect } from 'react';
+import NeoVLabPipeline from './pipeline.jsx';
+import {
+  useTweaks,
+  TweaksPanel,
+  TweakSection,
+  TweakRadio,
+} from './tweaks-panel.jsx';
 
 const NAV = [
   { id: 'home',     label: 'Home',     idx: '01' },
@@ -594,4 +601,4 @@ function App() {
   );
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+export default App;

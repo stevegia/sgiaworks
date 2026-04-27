@@ -1,5 +1,5 @@
 /* Pipeline diagram component for NeoVLab */
-const { useEffect, useRef, useState } = React;
+import { useEffect, useRef, useState } from 'react';
 
 const PIPELINE_NODES = [
   { id: 'ingest',  x: 40,  y: 160, w: 120, h: 56, label: 'INGEST',         sub: 'media files',     color: 'cyan' },
@@ -196,4 +196,4 @@ function NeoVLabPipeline() {
   );
 }
 
-window.NeoVLabPipeline = NeoVLabPipeline;
+export default NeoVLabPipeline;

@@ -4,6 +4,9 @@
 *.swp
 *.swo
 
+# Claude Code agent state (local only)
+.claude/
+
 # OS
 .DS_Store
 Thumbs.db
