@@ -1,11 +1,12 @@
 /* App component - sidebar nav, page routing, all pages */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import NeoVLabPipeline from './pipeline.jsx';
 import {
   useTweaks,
   TweaksPanel,
   TweakSection,
   TweakRadio,
+  TweakToggle,
 } from './tweaks-panel.jsx';
 
 const NAV = [
@@ -526,6 +527,109 @@ function ContactPage() {
   );
 }
 
+/* ===== Mobile top bar ===== */
+function MobileBar({ open, onToggle, active, scrollPct }) {
+  const cur = NAV.find((n) => n.id === active) || NAV[0];
+  return (
+    <div className={`mobile-bar ${open ? 'open' : ''}`}>
+      <div className="mb-brand">
+        <span className="mb-mark">// SG.SYS</span>
+        <span className="mb-name">Steven Gia</span>
+      </div>
+      <div className="mb-section" aria-hidden="true">
+        <span className="mb-section-idx">{cur.idx}</span>
+        <span className="mb-section-label">{cur.label}</span>
+      </div>
+      <button className="mb-toggle" onClick={onToggle} aria-label="Menu">
+        <span className="bar"></span>
+        <span className="bar"></span>
+        <span className="bar"></span>
+      </button>
+      <div className="mb-progress" style={{ transform: `scaleX(${scrollPct})` }}></div>
+    </div>
+  );
+}
+
+const NAV_HINT = {
+  home:     'identity · stack · current work',
+  skills:   'languages · frameworks · infra',
+  projects: 'NeoVLab · 6-phase pipeline',
+  resume:   '6 roles · 12 years · 2014 — now',
+  contact:  'email · availability · response',
+};
+
+/* ===== Mobile drawer ===== */
+function MobileDrawer({ open, active, onNav, mode, onModeChange, onClose }) {
+  return (
+    <div className={`mobile-drawer ${open ? 'open' : ''}`}>
+      <div className="md-status">
+        <div className="md-status-row">
+          <span className="md-key">node</span>
+          <span className="md-val">sg.sys</span>
+        </div>
+        <div className="md-status-row">
+          <span className="md-key">link</span>
+          <span className="md-val ok"><span className="md-dot"></span>secure</span>
+        </div>
+        <div className="md-status-row">
+          <span className="md-key">roles</span>
+          <span className="md-val ok">open</span>
+        </div>
+        <button className="md-close" onClick={onClose} aria-label="Close menu">×</button>
+      </div>
+
+      <nav className="nav">
+        <div className="nav-section">// sections</div>
+        {NAV.map((n) => (
+          <button key={n.id}
+                  className={`nav-item nav-item-lg ${active === n.id ? 'active' : ''}`}
+                  onClick={() => onNav(n.id)}>
+            <span className="nav-idx">{n.idx}</span>
+            <span className="nav-label">
+              <span className="nav-label-main">{n.label}</span>
+              <span className="nav-label-hint">{NAV_HINT[n.id]}</span>
+            </span>
+            <span className="nav-chev">›</span>
+          </button>
+        ))}
+        <div className="nav-section" style={{ marginTop: 20 }}>// display</div>
+        <ThemeSwitch mode={mode} onChange={onModeChange} />
+      </nav>
+
+      <div className="mb-foot">
+        <div className="mb-foot-row">
+          <span>v2026.04 · build 0xA1</span>
+          <span>uptime · 12y</span>
+        </div>
+        <a className="mb-foot-cta" href="mailto:steven.gia@outlook.com">
+          ▸ steven.gia@outlook.com
+        </a>
+      </div>
+    </div>
+  );
+}
+
+/* ===== Mobile sticky quick action ===== */
+const QUICK = {
+  home:     { go: 'projects', label: 'NeoVLab',      hint: 'featured project' },
+  skills:   { go: 'projects', label: 'NeoVLab',      hint: 'stack in action' },
+  projects: { go: 'resume',   label: 'Resume',       hint: 'work history' },
+  resume:   { go: 'contact',  label: 'Get in touch', hint: 'open to roles' },
+  contact:  { go: 'home',     label: 'Back to top',  hint: 'restart' },
+};
+function MobileQuickBar({ page, onNav }) {
+  const q = QUICK[page] || QUICK.home;
+  return (
+    <div className="mobile-quick">
+      <a className="mq-mail" href="mailto:steven.gia@outlook.com" aria-label="Email Steven">✉</a>
+      <button className="mq-go" onClick={() => onNav(q.go)}>
+        <span className="mq-go-label">{q.label}</span>
+        <span className="mq-go-hint">{q.hint} →</span>
+      </button>
+    </div>
+  );
+}
+
 /* ===== Reactive grid ===== */
 function GridBg() {
   useEffect(() => {
@@ -546,15 +650,20 @@ function GridBg() {
 /* ===== App ===== */
 const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "mode": "dark",
-  "intensity": "balanced"
+  "intensity": "balanced",
+  "mobilePreview": false
 }/*EDITMODE-END*/;
 
 function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
   const [page, setPage] = useState('home');
   const [pageKey, setPageKey] = useState(0);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [scrollPct, setScrollPct] = useState(0);
+  const mainRef = useRef(null);
 
   const handleNav = (id) => {
+    setDrawerOpen(false);
     if (id === page) return;
     setPage(id);
     setPageKey((k) => k + 1);
@@ -563,11 +672,41 @@ function App() {
 
   const setMode = (m) => setTweak('mode', m);
 
-  const themeClass = `theme-${t.mode} intensity-${t.intensity}`;
+  const themeClass = `theme-${t.mode} intensity-${t.intensity}${t.mobilePreview ? ' mobile-preview' : ''}`;
 
   useEffect(() => {
     document.body.className = themeClass;
   }, [themeClass]);
+
+  useEffect(() => {
+    document.body.style.overflow = drawerOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [drawerOpen]);
+
+  useEffect(() => {
+    const compute = () => {
+      let scrolled, total;
+      if (t.mobilePreview) {
+        const el = document.querySelector('.mobile-preview .app');
+        if (!el) return;
+        scrolled = el.scrollTop;
+        total = el.scrollHeight - el.clientHeight;
+      } else {
+        scrolled = window.scrollY;
+        total = document.documentElement.scrollHeight - window.innerHeight;
+      }
+      setScrollPct(total > 0 ? Math.min(1, scrolled / total) : 0);
+    };
+    compute();
+    const target = t.mobilePreview ? document.querySelector('.mobile-preview .app') : window;
+    if (!target) return;
+    target.addEventListener('scroll', compute, { passive: true });
+    window.addEventListener('resize', compute);
+    return () => {
+      target.removeEventListener('scroll', compute);
+      window.removeEventListener('resize', compute);
+    };
+  }, [t.mobilePreview, page]);
 
   let CurrentPage;
   switch (page) {
@@ -582,10 +721,13 @@ function App() {
     <>
       <GridBg />
       <div className="app">
+        <MobileBar open={drawerOpen} onToggle={() => setDrawerOpen(!drawerOpen)} active={page} scrollPct={scrollPct} />
+        <MobileDrawer open={drawerOpen} active={page} onNav={handleNav} mode={t.mode} onModeChange={setMode} onClose={() => setDrawerOpen(false)} />
         <Sidebar active={page} onNav={handleNav} mode={t.mode} onModeChange={setMode} />
-        <main className="main" data-screen-label={NAV.find(n => n.id === page)?.label}>
+        <main className="main" ref={mainRef} data-screen-label={NAV.find(n => n.id === page)?.label}>
           <div key={pageKey}>{CurrentPage}</div>
         </main>
+        <MobileQuickBar page={page} onNav={handleNav} />
       </div>
 
       <TweaksPanel>
@@ -596,6 +738,9 @@ function App() {
         <TweakRadio label="Intensity" value={t.intensity}
                     options={['restrained', 'balanced']}
                     onChange={(v) => setTweak('intensity', v)} />
+        <TweakSection label="Preview" />
+        <TweakToggle label="Mobile frame" value={t.mobilePreview}
+                     onChange={(v) => setTweak('mobilePreview', v)} />
       </TweaksPanel>
     </>
   );
